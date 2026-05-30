@@ -1,0 +1,24 @@
+name: TrendRadar 企业微信通知
+
+on:
+  workflow_dispatch: # 允许在网页上手动触发
+  push:
+    branches: [ main ] # 当 main 分支有推送时也自动触发
+
+jobs:
+  send-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 发送企业微信消息
+        env:
+          # 这里的 TRENDRADAR 必须和你之前创建的密钥名称完全一致
+          WECOM_WEBHOOK: ${{ secrets.TRENDRADAR }}
+        run: |
+          curl "$WECOM_WEBHOOK" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "msgtype": "text",
+            "text": {
+              "content": "✅ TrendRadar 工作流已成功运行！\n触发方式：手动\n时间：'$(date)'"
+            }
+          }'
