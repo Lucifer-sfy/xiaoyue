@@ -1,0 +1,48 @@
+name: TrendRadar 运行&结果推送
+# 触发方式：手动触发 + 每日定时自动运行
+on:
+  workflow_dispatch:  # 网页手动触发
+  schedule:
+    - cron: '0 1 * * *'  # 北京时间每日 9:00 自动执行（可自行修改时间）
+
+jobs:
+  run_and_notify:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取仓库全部代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 2. 配置 Python 环境
+      - name: 设置Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # 3. 安装项目所有依赖
+      - name: 安装依赖包
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. 运行 TrendRadar 主程序，捕获输出结果
+      - name: 执行TrendRadar
+        id: run_task
+        run: |
+          # 把 你的主程序.py 换成你项目真实启动文件，例如 main.py
+          python 你的主程序.py > output.log 2>&1
+          echo "TASK_RESULT=$(cat output.log)" >> $GITHUB_ENV
+
+      # 5. 将运行结果推送至企业微信
+      - name: 推送结果到企业微信
+        env:
+          WX_WEBHOOK: ${{ secrets.TRENDRADAR }}
+        run: |
+          curl -L "$WX_WEBHOOK" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "msgtype":"text",
+            "text":{
+              "content":"📈 TrendRadar 任务执行完毕\n运行日志：${{ env.TASK_RESULT }}"
+            }
+          }'
