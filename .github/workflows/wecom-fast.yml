@@ -1,0 +1,16 @@
+name: 企业微信快速推送
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 发送消息
+        env:
+          WX_WEBHOOK: ${{ secrets.TRENDRADAR }}
+        run: |
+          curl -L "$WX_WEBHOOK" \
+          -H "Content-Type: application/json" \
+          -d '{"msgtype":"text","text":{"content":"✅ 快速测试推送成功！"}}'
